@@ -7,7 +7,7 @@ import 'react-datepicker/dist/react-datepicker.css';
 
 // Configurações do Firebase
 const firebaseConfig = {
-  apiKey: "AIzaSyAu0Spjh4Yk_l0eiDBX-wC3cnhNsLhZER8",
+   apiKey: "AIzaSyAu0Spjh4Yk_l0eiDBX-wC3cnhNsLhZER8",
   authDomain: "crud-todo-list-9f575.firebaseapp.com",
   databaseURL: "https://crud-todo-list-9f575-default-rtdb.firebaseio.com",
   projectId: "crud-todo-list-9f575",
@@ -23,6 +23,7 @@ if (!firebase.apps.length) {
 }
 
 export default function App() {
+  const [taskId, setTaskId] = useState('');
   const [taskName, setTaskName] = useState('');
   const [dueDate, setDueDate] = useState(new Date());
   const [startDate, setStartDate] = useState(new Date());
@@ -85,6 +86,28 @@ export default function App() {
     taskRef.remove();
   };
 
+  const editTask = (taskId, taskName, dueDate, startDate) => {
+    setTaskId(taskId);
+    setTaskName(taskName);
+    setDueDate(new Date(dueDate));
+    setStartDate(new Date(startDate));
+  };
+
+  const updateTask = () => {
+    if (taskName && dueDate) {
+      const taskRef = firebase.database().ref(`tasks/${taskId}`);
+      taskRef.update({
+        taskName,
+        dueDate: dueDate.toISOString(),
+        startDate: startDate.toISOString(),
+      });
+      setTaskId('');
+      setTaskName('');
+      setDueDate(new Date());
+      setStartDate(new Date());
+    }
+  };
+
   return (
     <View style={{ flex: 1, paddingHorizontal: 20 }}>
       <View style={styles.formContainer}>
@@ -108,7 +131,22 @@ export default function App() {
           dateFormat="dd/MM/yyyy"
           className="datepicker"
         />
-        <Button title="Adicionar Tarefa" onPress={addTask} />
+        {!taskId ? (
+          <Button title="Adicionar Tarefa" onPress={addTask} />
+        ) : (
+          <View style={styles.editButtons}>
+            <Button title="Atualizar" onPress={updateTask} />
+            <Button
+              title="Cancelar"
+              onPress={() => {
+                setTaskId('');
+                setTaskName('');
+                setDueDate(new Date());
+                setStartDate(new Date());
+              }}
+            />
+          </View>
+        )}
       </View>
       <View style={styles.taskListContainer}>
         <Text style={styles.listTitle}>Tarefas em Progresso</Text>
@@ -136,12 +174,9 @@ export default function App() {
               </View>
               <Button
                 title="Editar"
-                onPress={() => console.log('Editar tarefa')}
+                onPress={() => editTask(task.id, task.taskName, task.dueDate, task.startDate)}
               />
-              <Button
-                title="Excluir"
-                onPress={() => deleteTask(task.id)}
-              />
+              <Button title="Excluir" onPress={() => deleteTask(task.id)} />
             </View>
           ))
         ) : (
@@ -155,10 +190,7 @@ export default function App() {
               <Text style={styles.taskName}>{task.taskName}</Text>
               <Text style={styles.dateLabel}>Data de Início: {task.startDate}</Text>
               <Text style={styles.dateLabel}>Data de Término: {task.dueDate}</Text>
-              <Button
-                title="Excluir"
-                onPress={() => deleteTask(task.id)}
-              />
+              <Button title="Excluir" onPress={() => deleteTask(task.id)} />
             </View>
           ))
         ) : (
@@ -168,9 +200,27 @@ export default function App() {
     </View>
   );
 }
+
 const styles = StyleSheet.create({
   formContainer: {
     marginBottom: 20,
+    paddingHorizontal: 20,
+    marginTop: 20,
+    borderRadius: 5,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+    backgroundColor: 'white',
+    width: '100%',
+    height: '50%',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'column',
   },
   input: {
     height: 40,
@@ -179,14 +229,34 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     paddingHorizontal: 10,
     borderRadius: 5,
+    backgroundColor: 'white',
+    color: 'black',
+    fontSize: 18,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    width: '100%',
   },
   taskListContainer: {
     flex: 1,
+    paddingHorizontal: 20,
+    marginTop: 20,
+    marginBottom: 20,
+    borderRadius: 5,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
   listTitle: {
     fontSize: 18,
     fontWeight: 'bold',
     marginBottom: 10,
+    textAlign: 'center',
+    color: 'gray',
   },
   taskContainer: {
     flexDirection: 'row',
@@ -198,20 +268,60 @@ const styles = StyleSheet.create({
     borderRadius: 5,
   },
   inProgressTask: {
-    backgroundColor: 'yellow',
+    backgroundColor: '#F2CB1F',
+    borderColor: '#F2CB1F',
+    borderWidth: 1,
+    borderRadius: 5,
+    marginRight: 10,
+    marginLeft: 10,
+    marginBottom: 10,
+    marginTop: 10,
+    padding: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   taskName: {
     flex: 1,
     marginRight: 10,
+    marginLeft: 10,
+    fontWeight: 'bold',
+    fontSize: 14,
+    color: 'gray',
+    textAlign: 'left',
   },
   dateLabel: {
     marginRight: 10,
+    fontWeight: 'bold',
+    fontSize: 14,
+    color: 'gray',
+    textAlign: 'right',
+    marginBottom: 5,
+    marginTop: 5,
+    marginRight: 10,
+    marginLeft: 10,
   },
   progressButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     marginRight: 10,
+    marginLeft: 10,
+    marginBottom: 10,
+    marginTop: 10,
   },
   emptyText: {
     textAlign: 'center',
     marginTop: 20,
+    marginBottom: 20,
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: 'gray',
+    textAlign: 'center',
+  },
+  editButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 10,
   },
 });
